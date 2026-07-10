@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from decimal import Decimal
 
@@ -18,8 +18,14 @@ class Bar:
 
 @dataclass(frozen=True)
 class InputData:
-    """Bars for one evaluation, pinned to an explicit `as_of` instant."""
+    """Bars for one evaluation, pinned to an explicit `as_of` instant.
+
+    `spreads` carries the live spread per symbol, in the instrument's points. It belongs in
+    the input rather than in config because it changes minute to minute; a spread written
+    into a YAML file is stale the moment it is saved.
+    """
 
     as_of: datetime
     bars: dict[str, tuple[Bar, ...]]
     daily_bars: dict[str, tuple[Bar, ...]]
+    spreads: dict[str, Decimal] = field(default_factory=dict)

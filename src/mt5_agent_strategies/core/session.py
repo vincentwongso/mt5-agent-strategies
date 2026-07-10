@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 from datetime import UTC, datetime, time, timedelta
 from decimal import Decimal
 from zoneinfo import ZoneInfo
@@ -38,19 +39,15 @@ def expected_bar_times(start: datetime, end: datetime, step: timedelta) -> list[
     return times
 
 
-def true_range_atr(bars: tuple[Bar, ...], period: int, before: datetime) -> Decimal | None:
-    """Average true range over daily bars fully completed before `before`.
+def average_true_range(bars: Sequence[Bar], period: int) -> Decimal | None:
+    """Average true range over the last `period` intervals of an already-sorted series.
 
-    Assumes daily bars are midnight-anchored in the feed's own timezone. Supply a
-    couple of spare bars so a broker's server-time D1 anchor cannot starve the window.
+    Needs `period + 1` bars, because each true range references the prior close.
+    Returns None when there are too few bars, or when the range degenerates to zero.
     """
-    completed = sorted(
-        (bar for bar in bars if bar.time + timedelta(days=1) <= before),
-        key=lambda bar: bar.time,
-    )
-    if len(completed) < period + 1:
+    if len(bars) < period + 1:
         return None
-    sample = completed[-(period + 1) :]
+    sample = bars[-(period + 1) :]
     ranges = [
         max(
             current.high - current.low,
@@ -61,3 +58,33 @@ def true_range_atr(bars: tuple[Bar, ...], period: int, before: datetime) -> Deci
     ]
     atr = sum(ranges, Decimal(0)) / Decimal(period)
     return atr if atr > 0 else None
+
+
+def true_range_atr(bars: tuple[Bar, ...], period: int, before: datetime) -> Decimal | None:
+    """Average true range over daily bars fully completed before `before`.
+
+    Assumes daily bars are midnight-anchored in the feed's own timezone. Supply a
+    couple of spare bars so a broker's server-time D1 anchor cannot starve the window.
+    """
+    completed = sorted(
+        (bar for bar in bars if bar.time + timedelta(days=1) <= before),
+        key=lambda bar: bar.time,
+    )
+    return average_true_range(completed, period)
+
+
+def active_session(
+    as_of: datetime, timezone: str, sessions: Sequence[tuple[time, int]]
+) -> tuple[datetime, datetime] | None:
+    """The (open, end) in UTC of whichever configured window contains `as_of`, if any."""
+    for session_open, minutes in sessions:
+        opened = session_open_utc(as_of, timezone, session_open)
+        closes = opened + timedelta(minutes=minutes)
+        if opened <= as_of < closes:
+            return opened, closes
+    return None
+
+
+def local_weekday(as_of: datetime, timezone: str) -> int:
+    """Weekday of `as_of` in the symbol's own timezone. Monday is 0."""
+    return as_of.astimezone(ZoneInfo(timezone)).weekday()

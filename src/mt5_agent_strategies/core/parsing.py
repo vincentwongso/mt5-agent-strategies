@@ -146,6 +146,16 @@ def _bar_map(raw: Any, label: str) -> dict[str, tuple[Bar, ...]]:
     return result
 
 
+def _spread_map(raw: Any, label: str) -> dict[str, Decimal]:
+    result: dict[str, Decimal] = {}
+    for symbol, value in mapping(raw, label).items():
+        points = decimal(value, f"{label}.{symbol}")
+        if points < 0:
+            raise StrategyError(f"{label}.{symbol} cannot be negative")
+        result[str(symbol)] = points
+    return result
+
+
 def load_input(path: str | Path) -> InputData:
     try:
         raw = json.loads(Path(path).read_text())
@@ -156,4 +166,5 @@ def load_input(path: str | Path) -> InputData:
         as_of=timestamp(root.get("as_of"), "as_of"),
         bars=_bar_map(root.get("bars"), "bars"),
         daily_bars=_bar_map(root.get("daily_bars", {}), "daily_bars"),
+        spreads=_spread_map(root.get("spread_points", {}), "spread_points"),
     )

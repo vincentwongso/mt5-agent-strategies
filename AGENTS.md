@@ -6,7 +6,12 @@ Setup instructions for coding agents asked to install and run this repository.
 
 A collection of advisory-only Agent Skills, each backed by a deterministic Python CLI that turns timestamped OHLC bars into one technical state per configured symbol. Nothing here sizes or places trades.
 
-Currently bundled: `orb-strategy` (open range breakout), evaluated by `orb-evaluate`. To add another, read `CONTRIBUTING.md`.
+Currently bundled:
+
+- `orb-strategy` (open range breakout), evaluated by `orb-evaluate`.
+- `coinflip-strategy` (the null hypothesis), evaluated by `coinflip-evaluate`. It has no edge by construction and exists to be beaten. Never present it as tradeable, and never report one of its signals without the accompanying `expectancy` block.
+
+To add another, read `CONTRIBUTING.md`.
 
 ## Install the CLI
 

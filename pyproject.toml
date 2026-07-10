@@ -16,6 +16,7 @@ dev = ["pytest>=8.0", "ruff>=0.5"]
 [project.scripts]
 # One command per strategy. Adding a strategy adds one line here.
 orb-evaluate = "mt5_agent_strategies.cli:orb_evaluate"
+coinflip-evaluate = "mt5_agent_strategies.cli:coinflip_evaluate"
 
 [tool.setuptools.packages.find]
 where = ["src"]

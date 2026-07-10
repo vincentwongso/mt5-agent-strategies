@@ -19,6 +19,14 @@ formed.
 | Skill | Command | What it reports |
 |---|---|---|
 | `orb-strategy` | `orb-evaluate` | Open range breakout: `none` · `building` · `armed` · `breakout_long` / `breakout_short` · `invalidated` |
+| `coinflip-strategy` | `coinflip-evaluate` | The null hypothesis. A random direction at a fixed reward-to-risk, plus the expectancy that proves it has no edge. |
+
+`coinflip` is the control group, not a trading idea. It exists because reward-to-risk is widely
+mistaken for an edge, and it is the cleanest way to show it is not: on a driftless walk the
+probability of reaching a `+rr × R` target before a `-1R` stop is exactly `1 / (1 + rr)`, so
+expectancy before costs is zero at *every* ratio, and after costs it equals exactly `-cost_r`.
+Any strategy that cannot beat this coin, out of sample and net of spread, has no edge. See
+[`references/expectancy.md`](skills/coinflip-strategy/references/expectancy.md).
 
 ## Install
 

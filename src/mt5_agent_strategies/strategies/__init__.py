@@ -4,6 +4,7 @@ To add a strategy, create a sibling package that calls `registry.register(...)` 
 import time and add one line here. See CONTRIBUTING.md.
 """
 
+from . import coinflip  # noqa: F401  registers "coinflip"
 from . import orb  # noqa: F401  registers "orb"
 
-__all__ = ["orb"]
+__all__ = ["coinflip", "orb"]

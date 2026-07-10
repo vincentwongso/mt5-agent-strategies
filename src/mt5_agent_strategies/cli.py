@@ -58,6 +58,7 @@ def make_entrypoint(name: str) -> Callable[[Sequence[str] | None], int]:
 
 
 orb_evaluate = make_entrypoint("orb")
+coinflip_evaluate = make_entrypoint("coinflip")
 
 
 if __name__ == "__main__":

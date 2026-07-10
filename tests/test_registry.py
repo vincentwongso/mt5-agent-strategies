@@ -19,8 +19,10 @@ def test_registered_strategies_satisfy_the_protocol():
 
 
 def test_unknown_strategy_lists_the_available_ones():
-    with pytest.raises(StrategyError, match="unknown strategy: 'nope'.*available: orb"):
+    with pytest.raises(StrategyError, match="unknown strategy: 'nope'") as caught:
         registry.get("nope")
+    for name in registry.names():
+        assert name in str(caught.value)
 
 
 def test_duplicate_registration_is_rejected():

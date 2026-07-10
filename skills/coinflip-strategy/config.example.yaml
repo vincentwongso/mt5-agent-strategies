@@ -1,0 +1,26 @@
+defaults:
+  bar_minutes: 5
+  atr_period: 14
+  stop_atr_multiple: 0.5
+  # The user's rule: never worse than 1:1.5. This does not create an edge (see
+  # references/expectancy.md); it only shapes the equity curve.
+  reward_risk: 1.5
+  # Fallback spread + slippage, in the instrument's points, used only when the input JSON
+  # has no `spread_points` entry for the symbol. Prefer the live value from the broker:
+  # a spread written into a config file is stale the moment it is saved.
+  # Leave this honest. Setting it to 0 makes the strategy look break-even, which it is not.
+  cost_points: 1.0
+  # An unverified prior, not a measurement. Nothing in this repo has tested it.
+  skip_weekdays: [Monday]
+
+symbols:
+  GER40:
+    timezone: Europe/London
+    sessions:
+      - open: "08:00"   # London cash open
+        minutes: 120
+  US30:
+    timezone: America/New_York
+    sessions:
+      - open: "09:30"   # New York cash open
+        minutes: 240
