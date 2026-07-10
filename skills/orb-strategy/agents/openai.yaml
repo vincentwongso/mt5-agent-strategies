@@ -1,0 +1,4 @@
+interface:
+  display_name: "Open Range Breakout"
+  short_description: "Evaluate session breakouts from OHLC bars"
+  default_prompt: "Use $orb-strategy to evaluate an opening-range breakout setup from recorded OHLC bars."

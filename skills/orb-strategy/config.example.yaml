@@ -1,0 +1,19 @@
+defaults:
+  range_minutes: 15
+  entry_window_minutes: 120
+  bar_minutes: 5
+  buffer_points: 0
+  targets_r: [1.0, 2.0]
+  filters:
+    atr_period: 5
+    min_range_atr: null
+    max_range_atr: null
+
+symbols:
+  GER40:
+    timezone: Europe/London
+    session_open: "08:00"
+  US30:
+    timezone: America/New_York
+    session_open: "09:30"
+
