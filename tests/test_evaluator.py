@@ -1,8 +1,8 @@
 from datetime import UTC, datetime
 from decimal import Decimal
 
-from orb_strategy.evaluator import evaluate_symbol
-from orb_strategy.models import AtrFilters, Bar, InputData, SymbolConfig
+from mt5_agent_strategies.core.models import Bar, InputData
+from mt5_agent_strategies.strategies.orb import AtrFilters, OrbConfig, evaluate_symbol
 
 
 def bar(hour: int, minute: int, high: str, low: str, close: str, *, month: int = 7) -> Bar:
@@ -16,7 +16,7 @@ def bar(hour: int, minute: int, high: str, low: str, close: str, *, month: int =
     )
 
 
-def config(**overrides) -> SymbolConfig:
+def config(**overrides) -> OrbConfig:
     values = {
         "symbol": "GER40",
         "timezone": "Europe/London",
@@ -29,7 +29,7 @@ def config(**overrides) -> SymbolConfig:
         "atr": AtrFilters(),
     }
     values.update(overrides)
-    return SymbolConfig(**values)
+    return OrbConfig(**values)
 
 
 def session_bars(extra=()):
@@ -112,13 +112,20 @@ def test_close_below_range_returns_short_levels():
     assert result["signal"]["targets"] == {"1R": 18150, "2R": 18100}
 
 
+def test_only_the_first_break_is_reported():
+    first = bar(7, 15, "18255", "18230", "18252.5")
+    reversal = bar(7, 20, "18255", "18150", "18160")
+    result = evaluate_symbol(
+        config(),
+        data(datetime(2026, 7, 10, 7, 25, tzinfo=UTC), session_bars((first, reversal))),
+    )
+    assert result["state"] == "breakout_long"
+
+
 def test_no_break_by_deadline_invalidates_session():
     result = evaluate_symbol(
         config(),
-        data(
-            datetime(2026, 7, 10, 9, 0, tzinfo=UTC),
-            session_bars(flat_entry_bars()),
-        ),
+        data(datetime(2026, 7, 10, 9, 0, tzinfo=UTC), session_bars(flat_entry_bars())),
     )
     assert result["state"] == "invalidated"
     assert result["reason"] == "entry_window_expired"
@@ -131,12 +138,10 @@ def test_new_york_open_tracks_daylight_saving():
         session_open=datetime.strptime("09:30", "%H:%M").time(),
     )
     summer = evaluate_symbol(
-        ny,
-        InputData(datetime(2026, 7, 10, 13, 29, tzinfo=UTC), {"US30": ()}, {}),
+        ny, InputData(datetime(2026, 7, 10, 13, 29, tzinfo=UTC), {"US30": ()}, {})
     )
     winter = evaluate_symbol(
-        ny,
-        InputData(datetime(2026, 1, 10, 14, 29, tzinfo=UTC), {"US30": ()}, {}),
+        ny, InputData(datetime(2026, 1, 10, 14, 29, tzinfo=UTC), {"US30": ()}, {})
     )
     assert summer["session_open"] == "2026-07-10T13:30:00Z"
     assert winter["session_open"] == "2026-01-10T14:30:00Z"
@@ -152,7 +157,7 @@ def test_enabled_atr_filter_fails_closed_when_daily_bars_absent():
     assert result["reason"] == "atr_unavailable"
 
 
-def test_missing_entry_bar_invalidates_instead_of_skipping_first_break():
+def test_missing_entry_bar_before_any_break_invalidates():
     later = bar(7, 20, "18260", "18240", "18255")
     result = evaluate_symbol(
         config(),
@@ -161,3 +166,26 @@ def test_missing_entry_bar_invalidates_instead_of_skipping_first_break():
     assert result["state"] == "invalidated"
     assert result["reason"] == "entry_bars_incomplete"
     assert result["missing_bars"] == ["2026-07-10T07:15:00Z"]
+
+
+def test_gap_after_confirmed_break_does_not_erase_it():
+    """A bar missing after the confirming close cannot unmake a confirmed break."""
+    first = bar(7, 15, "18255", "18230", "18252.5")
+    result = evaluate_symbol(
+        config(),
+        data(datetime(2026, 7, 10, 7, 25, tzinfo=UTC), session_bars((first,))),
+    )
+    assert result["state"] == "breakout_long"
+    assert result["signal"]["entry"] == 18252.5
+
+
+def test_breakout_is_stable_across_later_polls():
+    """The same confirmed break must survive every later `as_of`, gaps included."""
+    first = bar(7, 15, "18255", "18230", "18252.5")
+    bars = session_bars((first,))
+    results = [
+        evaluate_symbol(config(), data(datetime(2026, 7, 10, 7, minute, tzinfo=UTC), bars))
+        for minute in (20, 25, 40, 55)
+    ]
+    assert [result["state"] for result in results] == ["breakout_long"] * 4
+    assert {result["signal"]["entry"] for result in results} == {18252.5}

@@ -4,7 +4,9 @@ Setup instructions for coding agents asked to install and run this repository.
 
 ## What this is
 
-`orb-strategy` is an advisory-only Agent Skill and deterministic Python CLI. It turns timestamped OHLC bars into one technical ORB state per configured symbol. It never sizes or places trades.
+A collection of advisory-only Agent Skills, each backed by a deterministic Python CLI that turns timestamped OHLC bars into one technical state per configured symbol. Nothing here sizes or places trades.
+
+Currently bundled: `orb-strategy` (open range breakout), evaluated by `orb-evaluate`. To add another, read `CONTRIBUTING.md`.
 
 ## Install the CLI
 
@@ -28,10 +30,11 @@ Expect the help output to list `--config`, `--input`, and `--pretty`, followed b
 Use the installer so the same source works with supported agent homes:
 
 ```bash
+python scripts/install_skill.py --list
 python scripts/install_skill.py --runtime hermes
 ```
 
-Valid runtimes are `openclaw`, `hermes`, `claude-code`, and `codex`. The installer copies `skills/orb-strategy` to that runtime's user skill directory and refuses to overwrite an existing copy unless `--force` is passed.
+Valid runtimes are `openclaw`, `hermes`, `claude-code`, and `codex`. The installer discovers every `skills/*/SKILL.md` and copies it to that runtime's user skill directory, refusing to overwrite an existing copy unless `--force` is passed. Pass `--skill orb-strategy` to install just one.
 
 Verify the destination without modifying it again:
 
@@ -63,3 +66,4 @@ For live advisory use, gather completed M5 and D1 bars with a read-only market-d
 - Never commit credentials or broker account details.
 - Preserve timezone-aware source timestamps.
 - Contextual disqualifiers such as news, holidays, spread, exposure, and drawdown remain separate checks.
+- Evaluators are pure functions of their bars and `as_of`. Do not introduce clocks, network calls, or randomness into them.

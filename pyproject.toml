@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools>=69"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "mt5-agent-strategies"
-version = "0.1.0"
+version = "0.2.0"
 description = "Deterministic evaluators wrapped as portable Agent Skills"
 requires-python = ">=3.11"
 license = "MIT"
@@ -14,7 +14,8 @@ dependencies = ["PyYAML>=6.0"]
 dev = ["pytest>=8.0", "ruff>=0.5"]
 
 [project.scripts]
-orb-evaluate = "orb_strategy.cli:main"
+# One command per strategy. Adding a strategy adds one line here.
+orb-evaluate = "mt5_agent_strategies.cli:orb_evaluate"
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -25,4 +26,3 @@ testpaths = ["tests"]
 [tool.ruff]
 line-length = 100
 target-version = "py311"
-
