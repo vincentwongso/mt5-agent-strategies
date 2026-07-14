@@ -117,12 +117,16 @@ def load_symbol_settings(path: str | Path) -> dict[str, dict[str, Any]]:
 
 def _parse_bar(raw: Any, label: str) -> Bar:
     item = mapping(raw, label)
+    tick_volume = optional_decimal(item.get("tick_volume"), f"{label}.tick_volume")
+    if tick_volume is not None and tick_volume < 0:
+        raise StrategyError(f"{label}.tick_volume cannot be negative")
     bar = Bar(
         time=timestamp(item.get("time"), f"{label}.time"),
         open=decimal(item.get("open"), f"{label}.open"),
         high=decimal(item.get("high"), f"{label}.high"),
         low=decimal(item.get("low"), f"{label}.low"),
         close=decimal(item.get("close"), f"{label}.close"),
+        tick_volume=tick_volume,
     )
     if bar.low > bar.high:
         raise StrategyError(f"{label}.low cannot exceed high")

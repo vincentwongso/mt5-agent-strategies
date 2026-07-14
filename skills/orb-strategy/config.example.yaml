@@ -8,6 +8,14 @@ defaults:
     atr_period: 5
     min_range_atr: null
     max_range_atr: null
+    # Activity gate: arm only when the opening range's tick volume is at least this
+    # multiple of the same window's mean over the prior lookback sessions. 1.5 is a
+    # research-derived prior (expectancy on ORB flipped positive above ~1.0x relative
+    # volume in Zarattini & Aziz 2024 — US equities, unverified on CFDs), not an
+    # optimized or measured value. Set to null to disable. Requires bars with
+    # tick_volume covering the prior lookback sessions' opening windows.
+    min_relative_volume: 1.5
+    relative_volume_lookback: 10
 
 symbols:
   GER40:

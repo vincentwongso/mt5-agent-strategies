@@ -14,10 +14,13 @@ Use an IANA timezone so the UTC instant changes correctly with daylight saving.
 ## Technical rule
 
 - Build the range from the highest high and lowest low, including wicks, during the configured opening window.
+- With the activity gate enabled, arm the range only when its tick volume reaches the configured multiple of the same window's prior-session mean. A quiet open stands down (`opening_activity_below_threshold`) — expect this to be the *common* outcome; the gate exists to make most sessions no-trade sessions.
 - Confirm a break only when a completed entry-timeframe candle closes beyond the range plus any configured buffer.
 - Accept only the first qualifying break within the entry window.
 - Put the reported technical stop at the opposite end of the range.
 - Derive targets as configured R multiples of entry-to-stop distance.
+
+When narrating a stand-down, report the `activity` block (relative volume vs threshold) so the user can see how far below the bar the open was. Never present the gate as an edge; it concentrates evaluation in the regime where the documented US-equities effect lives, and its worth on any CFD instrument must be proven against the `coinflip-strategy` control's `edge_required`.
 
 ## Contextual disqualifiers
 

@@ -28,15 +28,36 @@ orb-evaluate --config config.yaml --input session-bars.json --pretty
 - `building`: the opening range has started but is not locked yet.
 - `armed`: the full range is locked and no completed bar has closed through it.
 - `breakout_long` or `breakout_short`: the first completed close cleared the configured buffer; report entry, opposite-range stop, risk in points, and targets.
-- `invalidated`: required bars are missing, an enabled ATR bound rejected the range, or the entry window expired without a break.
+- `invalidated`: required bars are missing, an enabled ATR bound or the activity gate rejected the range, or the entry window expired without a break.
 
 Treat a breakout as a technical candidate, not a recommendation or order instruction.
+
+## The activity gate
+
+With `filters.min_relative_volume` set, the evaluator arms the range only when its total
+`tick_volume` is at least that multiple of the same opening window's mean over the prior
+`relative_volume_lookback` sessions. Two extra invalidation reasons appear:
+
+- `opening_activity_below_threshold`: the open was quieter than required. **Standing down
+  is the strategy working as designed, not an error.** Report it that way.
+- `insufficient_volume_history`: too few complete prior windows with volume in the input,
+  or volume missing from the range bars. Supply more history; never estimate a baseline.
+
+Every state from the locked range onward carries an `activity` block (`relative_volume`,
+`threshold`, `or_volume`, `baseline_volume`, `lookback_sessions`). Relay it with the state.
+
+This gate does **not** create or claim an edge. The conditioning effect it encodes was
+documented on US equities (Zarattini & Aziz 2024); its transfer to CFDs, FX, or metals is
+unverified. The honest test of any configuration is the `coinflip-strategy` control: beat
+its `edge_required`, out of sample, net of costs, or the gate earned nothing.
 
 ## Configure
 
 Start from `config.example.yaml`. Define session settings per symbol because GER40 and US30 do not share a cash open. Keep `bar_minutes` aligned with the bars supplied.
 
 ATR bounds default to `null` because useful thresholds are instrument- and dataset-specific. When a bound is enabled, supply enough completed D1 bars for the configured ATR period or the evaluator invalidates the setup instead of guessing.
+
+The activity gate ships enabled at `min_relative_volume: 1.5` as a research-derived prior — not a measured or optimized value. With it enabled, gather M5 bars covering the opening window of the prior `relative_volume_lookback` sessions as well (one `get_rates` call for roughly `(lookback + 1) × 288` bars), and make sure `tick_volume` is preserved in the input.
 
 ## Boundaries
 

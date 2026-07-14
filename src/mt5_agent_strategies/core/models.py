@@ -7,13 +7,18 @@ from decimal import Decimal
 
 @dataclass(frozen=True)
 class Bar:
-    """One OHLC bar. `time` is the bar's opening time and is timezone-aware."""
+    """One OHLC bar. `time` is the bar's opening time and is timezone-aware.
+
+    `tick_volume` is optional because most evaluations don't need it; a strategy that
+    does (e.g. the ORB activity gate) must fail closed when it is absent, never guess.
+    """
 
     time: datetime
     open: Decimal
     high: Decimal
     low: Decimal
     close: Decimal
+    tick_volume: Decimal | None = None
 
 
 @dataclass(frozen=True)

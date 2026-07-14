@@ -253,8 +253,17 @@ def test_tight_spread_can_be_worse_than_wide_spread():
 
 def test_example_config_loads():
     configs = cf_config.load("skills/coinflip-strategy/config.example.yaml")
-    assert [item.symbol for item in configs] == ["GER40", "US30"]
-    assert configs[0].skip_weekdays == frozenset({0})
+    assert [item.symbol for item in configs] == [
+        "XAUUSD.z",
+        "NAS100",
+        "EURUSD.z",
+        "GBPUSD.z",
+        "AUDUSD.z",
+    ]
+    # Defaults flow through to every symbol: Monday stand-down and the 1:1.5 floor.
+    assert all(item.skip_weekdays == frozenset({0}) for item in configs)
+    assert all(item.reward_risk == Decimal("1.5") for item in configs)
+    # NAS100 keeps the full NY cash-morning window.
     assert configs[1].sessions[0][1] == 240
 
 

@@ -25,6 +25,20 @@ class AtrFilters:
 
 
 @dataclass(frozen=True)
+class ActivityFilters:
+    """Opening-range relative-volume gate.
+
+    `minimum` is the relative volume (opening-range tick volume over the mean of the
+    same window across the prior `lookback` sessions) required to arm the range. None
+    disables the gate. The documented conditioning effect (Zarattini & Aziz 2024) is
+    US-equities evidence; the threshold is a prior to verify, not a measured edge.
+    """
+
+    minimum: Decimal | None = None
+    lookback: int = 10
+
+
+@dataclass(frozen=True)
 class OrbConfig:
     symbol: str
     timezone: str
@@ -35,6 +49,7 @@ class OrbConfig:
     buffer_points: Decimal
     targets_r: tuple[Decimal, ...]
     atr: AtrFilters
+    activity: ActivityFilters = ActivityFilters()
 
 
 def _atr_filters(filters: dict[str, Any]) -> AtrFilters:
@@ -50,6 +65,18 @@ def _atr_filters(filters: dict[str, Any]) -> AtrFilters:
     if atr.minimum is not None and atr.maximum is not None and atr.minimum > atr.maximum:
         raise StrategyError("filters.min_range_atr cannot exceed max_range_atr")
     return atr
+
+
+def _activity_filters(filters: dict[str, Any]) -> ActivityFilters:
+    activity = ActivityFilters(
+        minimum=optional_decimal(filters.get("min_relative_volume"), "filters.min_relative_volume"),
+        lookback=positive_int(
+            filters.get("relative_volume_lookback", 10), "filters.relative_volume_lookback"
+        ),
+    )
+    if activity.minimum is not None and activity.minimum <= 0:
+        raise StrategyError("filters.min_relative_volume must be positive")
+    return activity
 
 
 def _targets(settings: dict[str, Any], symbol: str) -> tuple[Decimal, ...]:
@@ -75,6 +102,7 @@ def build(symbol: str, settings: dict[str, Any]) -> OrbConfig:
         buffer_points=decimal(settings.get("buffer_points", 0), "buffer_points"),
         targets_r=_targets(settings, symbol),
         atr=_atr_filters(settings.get("filters", {})),
+        activity=_activity_filters(settings.get("filters", {})),
     )
     if config.buffer_points < 0:
         raise StrategyError("buffer_points cannot be negative")

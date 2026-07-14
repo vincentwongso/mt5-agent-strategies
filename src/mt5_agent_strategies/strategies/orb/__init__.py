@@ -7,7 +7,7 @@ from pathlib import Path
 from ...core.models import InputData
 from ...registry import register
 from . import config as _config
-from .config import AtrFilters, OrbConfig
+from .config import ActivityFilters, AtrFilters, OrbConfig
 from .evaluator import evaluate_symbol
 
 
@@ -24,4 +24,11 @@ class OrbStrategy:
 
 STRATEGY = register(OrbStrategy())
 
-__all__ = ["AtrFilters", "OrbConfig", "OrbStrategy", "STRATEGY", "evaluate_symbol"]
+__all__ = [
+    "ActivityFilters",
+    "AtrFilters",
+    "OrbConfig",
+    "OrbStrategy",
+    "STRATEGY",
+    "evaluate_symbol",
+]
