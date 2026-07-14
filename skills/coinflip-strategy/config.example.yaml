@@ -13,14 +13,33 @@ defaults:
   # An unverified prior, not a measurement. Nothing in this repo has tested it.
   skip_weekdays: [Monday]
 
+# The five instruments a live weekday screen ranked cheapest to trade by cost_r (spread
+# relative to the ATR-scaled stop). "Cheapest to trade" is not an edge — every
+# expected_value_r is still negative. The sessions below are unverified priors: each is a
+# plausible "most active" window for that instrument, not something this repo has measured.
 symbols:
-  GER40:
-    timezone: Europe/London
-    sessions:
-      - open: "08:00"   # London cash open
-        minutes: 120
-  US30:
+  XAUUSD.z:            # gold
     timezone: America/New_York
     sessions:
-      - open: "09:30"   # New York cash open
+      - open: "08:00"  # NY morning, gold's liveliest hours
+        minutes: 180
+  NAS100:              # US tech index
+    timezone: America/New_York
+    sessions:
+      - open: "09:30"  # New York cash open
         minutes: 240
+  EURUSD.z:
+    timezone: Europe/London
+    sessions:
+      - open: "08:00"  # London open, EUR/USD peak liquidity
+        minutes: 180
+  GBPUSD.z:
+    timezone: Europe/London
+    sessions:
+      - open: "08:00"  # London open
+        minutes: 180
+  AUDUSD.z:
+    timezone: Australia/Sydney
+    sessions:
+      - open: "10:00"  # Sydney morning, AUD most active in the Asian session
+        minutes: 180
