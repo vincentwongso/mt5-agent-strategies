@@ -27,3 +27,7 @@ testpaths = ["tests"]
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+
+[tool.uv]
+# Skip releases younger than 7 days; compromised versions are usually pulled within that window.
+exclude-newer = "7 days"
